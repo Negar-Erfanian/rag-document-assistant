@@ -53,11 +53,14 @@ def main():
         if query.lower() == "exit":
             break
 
-        result = qa.run(query)
+        result = qa.invoke({"query": query})
 
         print("\nAnswer:")
-        print(result)
-        print("\n")
+        print(result["result"])
+
+        print("\nRetrieved Context:")
+        for doc in result["source_documents"]:
+            print("-", doc.page_content[:200])
 
 
 if __name__ == "__main__":
