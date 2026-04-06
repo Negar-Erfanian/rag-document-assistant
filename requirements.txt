@@ -11,3 +11,5 @@ sentence-transformers
 faiss-cpu
 python-dotenv
 tiktoken
+langchain_text_splitters
+langchain-huggingface

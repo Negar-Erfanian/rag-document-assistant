@@ -1,13 +1,21 @@
 import os
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
-from langchain.chains import RetrievalQA
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_classic.chains import RetrievalQA
+from dotenv import load_dotenv
 
-DB_PATH = "vectorstore"
+load_dotenv()
 
-def load_rag_pipeline():
 
-    embeddings = OpenAIEmbeddings()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "vectorstore")
+
+def load_rag():
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
 
     vectorstore = FAISS.load_local(
         DB_PATH,
@@ -17,21 +25,26 @@ def load_rag_pipeline():
 
     retriever = vectorstore.as_retriever(search_kwargs={"k":3})
 
-    llm = ChatOpenAI(temperature=0)
+    # LLM
+    llm = ChatGroq(
+        model="llama-3.1-8b-instant",
+        groq_api_key=os.getenv("GROQ_API_KEY")
+    )
 
-    qa_chain = RetrievalQA.from_chain_type(
+    qa = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever
     )
 
-    return qa_chain
+    return qa
 
 
 def main():
 
-    qa = load_rag_pipeline()
+    qa = load_rag()
 
-    print("RAG Document Assistant")
+    print("\nGroq RAG Assistant")
+    print("Type 'exit' to quit\n")
 
     while True:
 
@@ -42,7 +55,9 @@ def main():
 
         result = qa.run(query)
 
-        print("\nAnswer:", result)
+        print("\nAnswer:")
+        print(result)
+        print("\n")
 
 
 if __name__ == "__main__":
